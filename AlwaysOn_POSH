@@ -198,6 +198,7 @@ Join-SqlAvailabilityGroup –Path $AOPath –Name $AGName;
 foreach ($node in $clusterNodesNot0) {
 $AGPath = "SQLSERVER:\SQL\$node\$instance\AvailabilityGroups\$AGName"
 Add-SqlAvailabilityDatabase –Path $AGPath –Database $AODB1
+Add-SqlAvailabilityDatabase –Path $AGPath –Database $AODB
 }
 #----------------------------------------------
 #===============CREATE A LISTENER===================
