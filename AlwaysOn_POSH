@@ -108,9 +108,12 @@ New-Item $logFile -type file
 Function Write-StatusUpdate ($Msg) {
 	"$(Get-Date): $Msg`r" | Out-File -Filepath $logfile -Append -Encoding UTF8
 }
-
 #===============GETTING STARTED===================
 Write-StatusUpdate ("Starting AlwaysOn Installation...")
+Write-StatusUpdate ("I am Node $nodeIndex")
+If ($nodeIndex -ne 0) {
+      Write-StatusUpdate("I am a secondary node, all actions and logs will be on the primary")
+}
 if ($NodeIndex -eq 0) {
 #Set execution policy
 Set-ExecutionPolicy unrestricted -scope Process -force
@@ -121,7 +124,7 @@ Import-Module “sqlps” -DisableNameChecking
 Write-StatusUpdate ("Done!")
 #----------------------------------------------
 #===============ENABLE ALWAYSON===================
-Write-Status ("Enabling AlwaysOn...")
+Write-StatusUpdate ("Enabling AlwaysOn...")
 foreach ($node in $clusterNodes) {
 $ServerInstance = $node+"\"+$instance
 Enable-SqlAlwaysOn –ServerInstance $ServerInstance -force
@@ -148,7 +151,7 @@ Invoke-Sqlcmd -username $sqlAdminAccount -password $sqlAdminPassword -Query $SQL
 Write-StatusUpdate ("Done!")
 #----------------------------------------------
 #===============ALWAYSON DB CREATION===================
-Write-StatusUpdate ("Creating the first DB for AlwaysOn")
+Write-StatusUpdate ("Creating the first DB for AlwaysOn...")
 $AOPath = "SQLSERVER:\SQL\$hostname\$instance"
 $svr = Get-Item $AOPath
 $db1 = New-Object Microsoft.SqlServer.Management.Smo.Database($svr, $AODB);
@@ -213,7 +216,7 @@ Add-SqlAvailabilityDatabase –Path $AGPath –Database $AODB
 Write-StatusUpdate ("Starting AlwaysOn Installation")
 $AGPath = "SQLSERVER:\SQL\$hostname\$instance\AvailabilityGroups\$AGName"
 $ag = Get-Item $AGPath; 
-New-SqlAvailabilityGroupListener -Name $AGListenerName –Path $AGPath –StaticIp "$ListenerIP\$ListenerMask" –Port $ListenerPort;
+New-SqlAvailabilityGroupListener -Name $AGListenerName –Path $AGPath –StaticIp "$ListenerIP/$ListenerMask" –Port $ListenerPort;
 Write-StatusUpdate ("Done!")
 #----------------------------------------------
 Write-StatusUpdate ("SQL AlwaysOn Installation Complete")
