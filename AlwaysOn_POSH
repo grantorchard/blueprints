@@ -142,7 +142,7 @@ Write-StatusUpdate ("Done!")
 Write-StatusUpdate ("Creating the first DB for AlwaysOn")
 $AOPath = "SQLSERVER:\SQL\$hostname\$instance"
 $svr = Get-Item $AOPath
-$db1 = New-Object Microsoft.SqlServer.Management.Smo.Database($svr, $AODB1);
+$db1 = New-Object Microsoft.SqlServer.Management.Smo.Database($svr, $AODB);
 $db1.Create();
 Write-StatusUpdate ("Done!")
 #----------------------------------------------
@@ -151,16 +151,16 @@ Write-StatusUpdate ("Starting Database Backup and Restore operations")
 
 # Backup from Primary
 cd "SQLSERVER:\SQL\$hostname\$instance\databases"
-Backup-SqlDatabase –ServerInstance "$hostname\$instance" –Database $AODB1;
-Backup-SqlDatabase –ServerInstance "$hostname\$Instance" –Database $AODB1 –BackupFile "$FileSharePath$AODB1.bak";
-Backup-SqlDatabase –ServerInstance "$hostname\$Instance" –Database $AODB1 –BackupAction Log –BackupFile "$FileSharePath$AODB1.trn";
+Backup-SqlDatabase –ServerInstance "$hostname\$instance" –Database $AODB;
+Backup-SqlDatabase –ServerInstance "$hostname\$Instance" –Database $AODB –BackupFile "$FileSharePath$AODB.bak";
+Backup-SqlDatabase –ServerInstance "$hostname\$Instance" –Database $AODB –BackupAction Log –BackupFile "$FileSharePath$AODB.trn";
 
 # Restore to Secondary(s)
 cd "SQLSERVER:\SQL\$hostname\$instance"
 foreach ($node in $clusterNodesNot0) {
 $ServerInstance = $node+"\"+$instance
-Restore-SqlDatabase –ServerInstance "$node\$Instance" –Database $AODB1 –BackupFile "$FileSharePath$AODB1.bak" –NoRecovery;
-Restore-SqlDatabase –ServerInstance "$node\$Instance" –Database $AODB1 –RestoreAction Log –BackupFile "$FileSharePath$AODB1.trn" –NoRecovery;
+Restore-SqlDatabase –ServerInstance "$node\$Instance" –Database $AODB –BackupFile "$FileSharePath$AODB.bak" –NoRecovery;
+Restore-SqlDatabase –ServerInstance "$node\$Instance" –Database $AODB –RestoreAction Log –BackupFile "$FileSharePath$AODB.trn" –NoRecovery;
 }
 Write-StatusUpdate ("Done!")
 #----------------------------------------------
@@ -185,7 +185,7 @@ Write-StatusUpdate ("Done!")
 Write-StatusUpdate ("Creating Availability Group...")
 
 # AG creation on primary
-$ag = New-SqlAvailabilityGroup -Name $AGName -AvailabilityReplica $AvailabilityReplicas -Database $AODB1 -Path "SQLSERVER:\SQL\$hostname\$instance"
+$ag = New-SqlAvailabilityGroup -Name $AGName -AvailabilityReplica $AvailabilityReplicas -Database $AODB -Path "SQLSERVER:\SQL\$hostname\$instance"
 Write-StatusUpdate ("Done!")
 
 # Join secondary(s) to availability group
@@ -197,7 +197,6 @@ Join-SqlAvailabilityGroup –Path $AOPath –Name $AGName;
 # Add replica DBs to availability group
 foreach ($node in $clusterNodesNot0) {
 $AGPath = "SQLSERVER:\SQL\$node\$instance\AvailabilityGroups\$AGName"
-Add-SqlAvailabilityDatabase –Path $AGPath –Database $AODB1
 Add-SqlAvailabilityDatabase –Path $AGPath –Database $AODB
 }
 #----------------------------------------------
