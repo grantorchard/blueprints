@@ -93,13 +93,22 @@
 #
 # $ListenerMask="x.x.x.x."
 #
+# $AODB="AlwaysOnDB"
+#
+# $AGName ="AvailabilityGroup1"
+#
 #----------------------------------------------
 #===============LOGGING===================
-New-Item $logdirectory -type directory
-New-Item $logfile -type file
+if (!(test-path -Path $logDirectory)){
+New-Item $logDirectory -type directory
+}
+if (!(test-path -Path $logFile)){
+New-Item $logFile -type file
+}
 Function Write-StatusUpdate ($Msg) {
 	"$(Get-Date): $Msg`r" | Out-File -Filepath $logfile -Append -Encoding UTF8
 }
+
 #===============GETTING STARTED===================
 Write-StatusUpdate ("Starting AlwaysOn Installation...")
 if ($NodeIndex -eq 0) {
