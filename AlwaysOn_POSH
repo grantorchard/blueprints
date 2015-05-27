@@ -110,11 +110,10 @@ Function Write-StatusUpdate ($Msg) {
 }
 #===============GETTING STARTED===================
 Write-StatusUpdate ("Starting AlwaysOn Installation...")
-Write-StatusUpdate ("I am Node $nodeIndex")
-If ($nodeIndex -ne 0) {
+If ($clusterNodes[0] -ne $hostname) {
       Write-StatusUpdate("I am a secondary node, all actions and logs will be on the primary")
 }
-if ($NodeIndex -eq 0) {
+If ($clusterNodes[0] -eq $hostname) {
 #Set execution policy
 Set-ExecutionPolicy unrestricted -scope Process -force
 Set-ExecutionPolicy unrestricted -scope CurrentUser -force
@@ -139,7 +138,7 @@ $AOPath = "SQLSERVER:\SQL\$node\$instance"
 New-SqlHadrEndpoint -Path $AOPath -Name $AOEndpointName -Port $AOPort -EncryptionAlgorithm $AOEncryptionAlgorithm 
 
 # start the endpoint
-$AOPath = "SQLSERVER:\SQL\$node\$instance\endpoints\AlwaysOnEndpoint"
+$AOPath = "SQLSERVER:\SQL\$node\$instance\endpoints\$AOEndpointName"
 Set-SqlHadrEndpoint –Path $AOPath –State "Started";
 }
 
@@ -170,7 +169,6 @@ Backup-SqlDatabase –ServerInstance "$hostname\$Instance" –Database $AODB –
 # Restore to Secondary(s)
 cd "SQLSERVER:\SQL\$hostname\$instance"
 foreach ($node in $clusterNodesNot0) {
-$ServerInstance = $node+"\"+$instance
 Restore-SqlDatabase –ServerInstance "$node\$Instance" –Database $AODB –BackupFile "$FileSharePath$AODB.bak" –NoRecovery;
 Restore-SqlDatabase –ServerInstance "$node\$Instance" –Database $AODB –RestoreAction Log –BackupFile "$FileSharePath$AODB.trn" –NoRecovery;
 }
