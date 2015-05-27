@@ -1,0 +1,5 @@
+$NTRightsInstallSource = "c:\tmp\NTRights.exe"
+iex "$NTRightsInstallSource +r SeServiceLogonRight -u $serviceAccount"
+$service = Get-WMIObject -ComputerName $hostname -namespace "root\cimv2" -class Win32_Service -Filter $filter
+$service.change($null,$null,$null,$null,$null,$null,$serviceAccount,$servicePassword) 
+Set-ItemProperty -Path "Registry::HKLM\System\CurrentControlSet\Services\AppDAgentBootstrap" -Name "DelayedAutostart" -Value 0 -Type DWORD
