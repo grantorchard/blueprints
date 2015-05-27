@@ -1,0 +1,26 @@
+#----------------------------------------------------
+# Create Logfile
+#----------------------------------------------------
+$log = $logdirectory +"\" + $logfile
+New-Item $logdirectory -type directory
+New-Item $log -type file
+
+#----------------------------------------------------
+#Install WSFC
+#----------------------------------------------------
+Import-Module ServerManager 
+Add-WindowsFeature Failover-Clustering –IncludeAllSubFeature >> $log
+Install-WindowsFeature -Name Failover-Clustering –IncludeManagementTools >> $log
+
+if ($NodeIndex -eq 0) {
+
+#----------------------------------------------------
+# Create Cluster Service
+# Create a new cluster ‘AlwaysOnCluster’ with nodes.
+#----------------------------------------------------
+Import-Module FailoverClusters
+New-Cluster –Name $AlwaysOnClusterName –Node $clusterNodes -StaticAddress $ClusterIP -NoStorage
+
+# Add Quorum
+Set-ClusterQuorum -NodeAndFileShareMajority $QuorumFileSharePath
+}
